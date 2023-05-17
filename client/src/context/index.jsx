@@ -21,32 +21,53 @@ export const GlobalContextProvider = ({ children }) => {
     const [errorMessage, setErrorMessage] = useState('');
     const [updateGameData, setUpdateGameData] = useState(0);
 
-    //* Set the wallet address to the state
+    const player1Ref = useRef();
+    const player2Ref = useRef();
+
+    const navigate = useNavigate();
+
     const updateCurrentWalletAddress = async () => {
-        const accounts = await window?.ethereum?.request({ method: 'eth_requestAccounts' });
-        console.log('accs', accounts)
-        if (accounts) setWalletAddress(accounts[0]);
+        try {
+            console.log('Call updateCurrentWalletAddress')
+            const accounts = await window?.ethereum?.request({ method: 'eth_accounts' });
+            console.log('accs', accounts)
+            if (accounts) setWalletAddress(accounts[0]);
+        } catch (error) {
+            console.log('Err updateWallet', error)
+        }
     };
 
     useEffect(() => {
-        if (walletAddress) return
+        console.log('UseEffect updateWallet')
         updateCurrentWalletAddress()
         window?.ethereum?.on('accountsChanged', updateCurrentWalletAddress);
     }, [])
 
-    //* Set the smart contract and provider to the state
+    //* Handle alerts
+    useEffect(() => {
+        if (showAlert?.status) {
+            const timer = setTimeout(() => {
+                setShowAlert({ status: false, type: 'info', message: '' });
+            }, [5000]);
+
+            return () => clearTimeout(timer);
+        }
+    }, [showAlert]);
+
     useEffect(() => {
         const setSmartContractAndProvider = async () => {
-            const web3Modal = new Web3Modal();
-            const connection = await web3Modal.connect();
-            const newProvider = new ethers.providers.Web3Provider(connection);
-            const signer = newProvider.getSigner();
-            const newContract = new ethers.Contract(ADDRESS, ABI, signer);
+            const web3Modal = new Web3Modal()
+            const connection = await web3Modal.connect()
+            const newProvider = new ethers.providers.Web3Provider(connection)
+            const signer = newProvider.getSigner()
+            const newContract = new ethers.Contract(ADDRESS, ABI, signer)
 
+            console.log('set provider, contract', newProvider, newContract)
             setProvider(newProvider);
             setContract(newContract);
         };
         setSmartContractAndProvider();
+
     }, []);
 
     return (
@@ -60,8 +81,8 @@ export const GlobalContextProvider = ({ children }) => {
                 // gameData,
                 walletAddress,
                 // updateCurrentWalletAddress,
-                // showAlert,
-                // setShowAlert,
+                showAlert,
+                setShowAlert,
                 // battleName,
                 // setBattleName,
                 // errorMessage,
