@@ -54,6 +54,34 @@ export const GlobalContextProvider = ({ children }) => {
         }
     }, [showAlert]);
 
+    // Set Game data
+    useEffect(() => {
+        const fetchGameData = async () => {
+
+            if (!contract) {
+                console.log('Error with contract')
+                return
+            }
+            const fetchedBattles = await contract.getAllBattles();
+            console.log('fetchedBattles', fetchedBattles)
+            const pendingBattles = fetchedBattles.filter((battle) => battle.battleStatus === 0);
+
+            let activeBattle = null;
+            fetchedBattles.forEach((battle) => {
+                if (battle.players.find((player) => player.toLowerCase() === walletAddress.toLowerCase())) {
+                    if (battle.winner.startsWith('0x00')) { // if winner is empty
+                        activeBattle = battle;
+                    }
+                }
+            });
+
+            setGameData({ pendingBattles: pendingBattles.slice(1), activeBattle });
+
+        };
+
+        fetchGameData();
+    }, [contract, updateGameData]);
+
     useEffect(() => {
         const setSmartContractAndProvider = async () => {
             const web3Modal = new Web3Modal()
@@ -91,20 +119,20 @@ export const GlobalContextProvider = ({ children }) => {
     return (
         <GlobalContext.Provider
             value={{
-                // player1Ref,
-                // player2Ref,
-                // battleGround,
-                // setBattleGround,
+                player1Ref,
+                player2Ref,
+                battleGround,
+                setBattleGround,
                 contract,
-                // gameData,
+                gameData,
                 walletAddress,
-                // updateCurrentWalletAddress,
+                updateCurrentWalletAddress,
                 showAlert,
                 setShowAlert,
-                // battleName,
-                // setBattleName,
-                // errorMessage,
-                // setErrorMessage,
+                battleName,
+                setBattleName,
+                errorMessage,
+                setErrorMessage,
             }}
         >
             {children}

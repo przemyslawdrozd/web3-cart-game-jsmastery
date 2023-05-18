@@ -275,8 +275,11 @@ contract AVAXGods is ERC1155, Ownable, ERC1155Supply {
     function createBattle(
         string memory _name
     ) external returns (Battle memory) {
-        require(isPlayer(msg.sender), "Please Register Player First"); // Require that the player is registered
-        require(!isBattle(_name), "Battle already exists!"); // Require battle with same name should not exist
+        // Require that the player is registered
+        require(isPlayer(msg.sender), "Please Register Player First");
+
+        // Require battle with same name should not exist
+        require(!isBattle(_name), "Battle already exists!");
 
         bytes32 battleHash = keccak256(abi.encode(_name));
 
@@ -284,7 +287,8 @@ contract AVAXGods is ERC1155, Ownable, ERC1155Supply {
             BattleStatus.PENDING, // Battle pending
             battleHash, // Battle hash
             _name, // Battle name
-            [msg.sender, address(0)], // player addresses; player 2 empty until they joins battle
+            // player addresses; player 2 empty until they joins battle
+            [msg.sender, address(0)],
             [0, 0], // moves for each player
             address(0) // winner address; empty until battle ends
         );
