@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageHOC, CustomInput, CustomButton } from '../components'
 import { useGlobalContext } from '../context';
 import { useNavigate } from 'react-router-dom';
@@ -21,8 +21,6 @@ const Home = () => {
           type: 'info',
           message: `${playerName} is being summoned!`,
         });
-
-        setTimeout(() => navigate('/create-battle'), 8000);
       }
     } catch (error) {
       let errMsg = 'Something Went Wrong!'
@@ -36,6 +34,17 @@ const Home = () => {
     }
   };
 
+  useEffect(() => {
+    const createPlayerToken = async () => {
+      const playerExists = await contract.isPlayer(walletAddress);
+      const playerTokenExists = await contract.isPlayerToken(walletAddress);
+      console.log('createPlayerToken', playerExists, playerTokenExists)
+
+      if (playerExists && playerTokenExists) navigate('/create-battle');
+    };
+
+    if (contract) createPlayerToken();
+  }, [contract]);
 
   return (
     // walletAddress && (

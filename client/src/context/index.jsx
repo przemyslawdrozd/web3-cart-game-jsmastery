@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 // import { GetParams } from '../utils/onboard.js';
 import { ABI, ADDRESS } from '../contract';
-// import { createEventListeners } from './createEventListeners';
+import { createEventListeners } from './createEventListeners';
 
 const GlobalContext = createContext()
 
@@ -69,6 +69,24 @@ export const GlobalContextProvider = ({ children }) => {
         setSmartContractAndProvider();
 
     }, []);
+
+    useEffect(() => {
+        if (
+            // step === -1 && 
+            contract) {
+            console.log('Invoke inside if')
+            createEventListeners({
+                navigate,
+                contract,
+                provider,
+                walletAddress,
+                setShowAlert,
+                player1Ref,
+                player2Ref,
+                setUpdateGameData,
+            });
+        }
+    }, [contract]);
 
     return (
         <GlobalContext.Provider
