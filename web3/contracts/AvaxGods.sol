@@ -309,11 +309,14 @@ contract AVAXGods is ERC1155, Ownable, ERC1155Supply {
             _battle.battleStatus == BattleStatus.PENDING,
             "Battle already started!"
         ); // Require that battle has not started
+
         require(
             _battle.players[0] != msg.sender,
             "Only player two can join a battle"
         ); // Require that player 2 is joining the battle
-        require(!getPlayer(msg.sender).inBattle, "Already in battle"); // Require that player is not already in a battle
+
+        // Require that player is not already in a battle
+        require(!getPlayer(msg.sender).inBattle, "Already in battle");
 
         _battle.battleStatus = BattleStatus.STARTED;
         _battle.players[1] = msg.sender;
@@ -322,7 +325,8 @@ contract AVAXGods is ERC1155, Ownable, ERC1155Supply {
         players[playerInfo[_battle.players[0]]].inBattle = true;
         players[playerInfo[_battle.players[1]]].inBattle = true;
 
-        emit NewBattle(_battle.name, _battle.players[0], msg.sender); // Emits NewBattle event
+        // Emits NewBattle event
+        emit NewBattle(_battle.name, _battle.players[0], msg.sender);
         return _battle;
     }
 
