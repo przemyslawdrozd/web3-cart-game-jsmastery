@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 import Web3Modal from 'web3modal';
 import { useNavigate } from 'react-router-dom';
 
-// import { GetParams } from '../utils/onboard.js';
+import { GetParams } from '../utils/onboard.js';
 import { ABI, ADDRESS } from '../contract';
 import { createEventListeners } from './createEventListeners';
 
@@ -29,9 +29,17 @@ export const GlobalContextProvider = ({ children }) => {
     const updateCurrentWalletAddress = async () => {
         try {
             console.log('Call updateCurrentWalletAddress')
-            const accounts = await window?.ethereum?.request({ method: 'eth_accounts' });
+
+            const walletAddress = localStorage.getItem('wallet-address')
+            if (walletAddress) return setWalletAddress(walletAddress)
+
+            console.log('here')
+            const accounts = await window?.ethereum?.request({ method: 'eth_accounts' })
             console.log('accs', accounts)
-            if (accounts) setWalletAddress(accounts[0]);
+            if (accounts) {
+                setWalletAddress(accounts[0])
+                localStorage.setItem('wallet-address', accounts[0])
+            }
         } catch (error) {
             console.log('Err updateWallet', error)
         }
@@ -53,6 +61,31 @@ export const GlobalContextProvider = ({ children }) => {
             return () => clearTimeout(timer);
         }
     }, [showAlert]);
+
+    //* Handle error messages
+    useEffect(() => {
+        if (errorMessage) {
+            const parsedErrorMessage = errorMessage?.reason?.slice('execution reverted: '.length).slice(0, -1);
+
+            if (parsedErrorMessage) {
+                setShowAlert({
+                    status: true,
+                    type: 'failure',
+                    message: parsedErrorMessage,
+                });
+            }
+        }
+    }, [errorMessage]);
+
+    useEffect(() => {
+        const isBattleground = localStorage.getItem('battleground');
+
+        if (isBattleground) {
+            setBattleGround(isBattleground);
+        } else {
+            localStorage.setItem('battleground', battleGround);
+        }
+    }, []);
 
     // Set Game data
     useEffect(() => {
@@ -100,7 +133,7 @@ export const GlobalContextProvider = ({ children }) => {
 
     useEffect(() => {
         if (
-            // step === -1 && 
+            step === -1 &&
             contract) {
             console.log('Invoke inside if')
             createEventListeners({
@@ -114,7 +147,20 @@ export const GlobalContextProvider = ({ children }) => {
                 setUpdateGameData,
             });
         }
-    }, [contract]);
+    }, [contract, step]);
+
+    useEffect(() => {
+        const resetParams = async () => {
+            const currentStep = await GetParams();
+
+            setStep(currentStep.step);
+        };
+
+        resetParams();
+
+        window?.ethereum?.on('chainChanged', () => resetParams());
+        window?.ethereum?.on('accountsChanged', () => resetParams());
+    }, []);
 
     return (
         <GlobalContext.Provider

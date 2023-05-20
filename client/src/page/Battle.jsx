@@ -67,15 +67,15 @@ const Battle = () => {
         playAudio(choice === 1 ? attackSound : defenseSound);
 
         try {
-            await contract.attackOrDefendChoice(choice, battleName, { gasLimit: 200000 });
-
+            const resp = await contract.attackOrDefendChoice(choice, battleName, { gasLimit: 200000 });
+            console.log('move resp', resp)
             setShowAlert({
                 status: true,
                 type: 'info',
                 message: `Initiating ${choice === 1 ? 'attack' : 'defense'}`,
             });
         } catch (error) {
-
+            console.log('Err makeAMove', error)
             setErrorMessage(error);
         }
     };
